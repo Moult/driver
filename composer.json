@@ -1,0 +1,11 @@
+{
+    "name": "moult/driver",
+    "description": "Library abstraction layer for framework agnostic domain logic",
+    "keywords": ["driver", "library", "abstraction", "framework"],
+    "license": "MIT",
+    "require": {
+        "php": ">=5.4.0"
+    },
+    "autoload": {"psr-0": {"": "src"}},
+    "minimum-stability": "dev"
+}

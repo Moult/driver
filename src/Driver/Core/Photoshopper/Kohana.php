@@ -6,7 +6,7 @@
 
 namespace
 {
-    trait Driver_Core_Kohana_Photoshopper
+    trait Driver_Core_Photoshopper_Kohana
     {
         public function resize_to_width($width)
         {
@@ -24,14 +24,14 @@ namespace
     }
 }
 
-namespace Driver\Core\Kohana
+namespace Driver\Core\Photoshopper
 {
-    class Photoshopper
+    class Kohana
     {
         protected $source;
         protected $destination;
 
-        use \Driver_Core_Kohana_Photoshopper;
+        use \Driver_Core_Photoshopper_Kohana;
 
         public function setup($source, $destination = NULL)
         {

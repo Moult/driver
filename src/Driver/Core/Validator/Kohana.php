@@ -6,7 +6,7 @@
 
 namespace
 {
-    trait Driver_Core_Kohana_Validator
+    trait Driver_Core_Validator_Kohana
     {
         protected $instance;
 
@@ -71,10 +71,10 @@ namespace
     }
 }
 
-namespace Driver\Core\Kohana
+namespace Driver\Core\Validator
 {
-    class Validator implements \Driver\Core\Tool\Validator
+    class Kohana implements \Driver\Core\Tool\Validator
     {
-        use \Driver_Core_Kohana_Validator;
+        use \Driver_Core_Validator_Kohana;
     }
 }

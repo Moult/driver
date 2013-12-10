@@ -4,9 +4,9 @@
  * Full license text in LICENSE file
  */
 
-namespace Driver\Core\Swiftmailer;
+namespace Driver\Core\Emailer;
 
-class Emailer
+class Swiftmailer
 {
     protected $instance;
     protected $config;

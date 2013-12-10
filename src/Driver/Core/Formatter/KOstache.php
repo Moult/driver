@@ -4,9 +4,9 @@
  * Full license text in LICENSE file
  */
 
-namespace Driver\Core\Kohana\KOstache;
+namespace Driver\Core\Formatter;
 
-class Formatter
+class KOstache
 {
     protected $data;
 

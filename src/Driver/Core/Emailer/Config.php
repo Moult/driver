@@ -4,7 +4,7 @@
  * Full license text in LICENSE file
  */
 
-namespace Driver\Core\Swiftmailer\Emailer;
+namespace Driver\Core\Emailer;
 
 class Config
 {

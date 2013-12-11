@@ -9,18 +9,19 @@ namespace Driver\Core\Emailer;
 class Swiftmailer
 {
     protected $instance;
-    protected $config;
     protected $to;
     protected $from;
     protected $body = '';
     protected $html = NULL;
+    protected $smtp_host;
+    protected $smtp_user;
+    protected $smtp_pass;
+    protected $smtp_port;
+    protected $smtp_ssl = TRUE;
 
-    public function __construct(Emailer\Config $config)
+    public function __construct()
     {
         $this->instance = \Swift_Message::newInstance();
-        $this->config = $config;
-        $this->to = array($config->default_to_email => $config->default_to_name);
-        $this->from = array($config->default_from_email => $config->default_from_name);
     }
 
     /**
@@ -115,15 +116,15 @@ class Swiftmailer
         {
             $this->instance->addPart($this->html, 'text/html');
         }
-        if ($this->config->smtp_use_ssl)
+        if ($this->smtp_ssl)
         {
-            $transport = \Swift_SmtpTransport::newInstance($this->config->smtp_host, $this->config->smtp_port, 'ssl');
+            $transport = \Swift_SmtpTransport::newInstance($this->smtp_host, $this->smtp_port, 'ssl');
         }
         else
         {
-            $transport = \Swift_SmtpTransport::newInstance($this->config->smtp_host, $this->config->smtp_port);
+            $transport = \Swift_SmtpTransport::newInstance($this->smtp_host, $this->smtp_port);
         }
-        $transport->setUsername($this->config->smtp_user)->setPassword($this->config->smtp_pass);
+        $transport->setUsername($this->smtp_user)->setPassword($this->smtp_pass);
         $mailer = \Swift_Mailer::newInstance($transport);
         $mailer->send($this->instance);
     }

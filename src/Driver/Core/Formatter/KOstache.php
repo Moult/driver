@@ -9,6 +9,7 @@ namespace Driver\Core\Formatter;
 class KOstache
 {
     protected $data;
+    protected $layout = NULL;
 
     public function setup($data)
     {
@@ -21,7 +22,7 @@ class KOstache
         $view = new $view_name;
         $view->data = $this->data;
 
-        $renderer = \Kostache_Layout::factory();
+        $renderer = \Kostache_Layout::factory($this->layout);
         return $renderer->render($view);
     }
 }

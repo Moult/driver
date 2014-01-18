@@ -121,7 +121,7 @@ namespace
             return $errors;
         }
 
-        private function rule($key, $rule, $arg = NULL)
+        protected function rule($key, $rule, $arg = NULL)
         {
             switch ($rule) {
                 case 'upload_valid':

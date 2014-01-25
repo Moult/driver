@@ -11,7 +11,7 @@ class KOstache
     protected $data;
     protected $layout = NULL;
 
-    public function setup($data)
+    public function setup(array $data)
     {
         $this->data = $data;
     }

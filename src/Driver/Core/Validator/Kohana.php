@@ -102,7 +102,6 @@ namespace
             {
                 $arguments[$arg_key] = $data[$arg];
             }
-            array_unshift($arguments, ':value');
             $this->instance->rule($key, $function, $arguments);
         }
 

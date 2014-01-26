@@ -1,27 +1,40 @@
 <?php
+/**
+ * @license MIT
+ */
 
-namespace Driver\Core\Authenticator;
-
-class Kohana implements Driver\Core\Tool\Authenticator
+namespace
 {
-    public function is_authenticated($id)
+    trait Driver_Core_Authenticator_Kohana
     {
-        return (bool) Auth::instance()->get_user() == $id;
-    }
+        public function is_authenticated($id)
+        {
+            return (bool) Auth::instance()->get_user() == $id;
+        }
 
-    public function authenticate($id)
-    {
-        Auth::instance()->force_login($id);
-    }
+        public function authenticate($id)
+        {
+            Auth::instance()->force_login($id);
+        }
 
-    public function deauthenticate($id)
-    {
-        if (Auth::instance()->get_user() == $id)
-            return Auth::instance()->logout();
-    }
+        public function deauthenticate($id)
+        {
+            if (Auth::instance()->get_user() == $id)
+                return Auth::instance()->logout();
+        }
 
-    public function get_authenticated_id()
+        public function get_authenticated_id()
+        {
+            return (int) Auth::instance()->get_user();
+        }
+    }
+}
+
+
+namespace Driver\Core\Authenticator
+{
+    class Kohana implements Driver\Core\Tool\Authenticator
     {
-        return (int) Auth::instance()->get_user();
+        use \Driver_Core_Authenticator_Kohana;
     }
 }

@@ -33,7 +33,7 @@ namespace
 
 namespace Driver\Core\Authenticator
 {
-    class Kohana implements Driver\Core\Tool\Authenticator
+    class Kohana implements \Driver\Core\Tool\Authenticator
     {
         use \Driver_Core_Authenticator_Kohana;
     }

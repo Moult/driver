@@ -52,7 +52,7 @@ namespace
 
         public function does_file_exist($file_path)
         {
-            if (file_exists($file_path))
+            if (is_file($file_path))
                 return TRUE;
             elseif (isset($_FILES[$this->key]))
                 return Upload::not_empty($_FILES[$this->key]);
@@ -64,11 +64,18 @@ namespace
         {
             $this->key = $key;
             $this->mimetypes = $mimetypes;
-            $this->add_callback($key, array($this, 'is_file_valid_mimetype'), array());
+            $this->add_callback($key, array($this, 'is_file_valid_mimetype'), array($this->key));
         }
 
-        public function is_file_valid_mimetype()
+        public function is_file_valid_mimetype($file_path)
         {
+            $has_files_global = FALSE;
+            if (isset($_FILES[$this->key]))
+            {
+                $file_path = $_FILES[$this->key]['tmp_name'];
+                $has_files_global = TRUE;
+            }
+
             $extensions = array();
             foreach ($this->mimetypes as $mimetype)
             {
@@ -79,10 +86,13 @@ namespace
                 }
             }
 
-            $mimetype = explode(';', finfo_file(finfo_open(FILEINFO_MIME), $_FILES[$this->key]['tmp_name']))[0];
+            $mimetype = explode(';', finfo_file(finfo_open(FILEINFO_MIME), $file_path))[0];
 
-            return in_array($mimetype, $this->mimetypes)
-                AND Upload::type($_FILES[$this->key], $extensions);
+            if ($has_files_global)
+                return in_array($mimetype, $this->mimetypes)
+                    AND Upload::type($_FILES[$this->key], $extensions);
+            else
+                return in_array($mimetype, $this->mimetypes);
         }
 
         public function add_max_file_size_rule($key, $bytes)

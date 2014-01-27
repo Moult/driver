@@ -47,12 +47,14 @@ namespace
         {
             $this->key = $key;
             $this->rule($key, 'not_empty');
-            $this->add_callback($key, array($this, 'does_file_exist'), array());
+            $this->add_callback($key, array($this, 'does_file_exist'), array($key));
         }
 
-        public function does_file_exist()
+        public function does_file_exist($file_path)
         {
-            if (isset($_FILES[$this->key]))
+            if (file_exists($file_path))
+                return TRUE;
+            elseif (isset($_FILES[$this->key]))
                 return Upload::not_empty($_FILES[$this->key]);
             else
                 return FALSE;

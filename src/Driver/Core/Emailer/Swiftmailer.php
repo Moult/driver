@@ -63,8 +63,8 @@ class Swiftmailer
     public function send()
     {
         $this->instance->setTo($this->to);
-        $this->instance->setCc($this->Cc);
-        $this->instance->setBcc($this->Bcc);
+        $this->instance->setCc($this->cc);
+        $this->instance->setBcc($this->bcc);
         $this->instance->setFrom($this->from);
         $this->instance->setBody($this->body, 'text/plain');
         if ($this->html !== NULL)

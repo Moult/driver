@@ -99,12 +99,15 @@ namespace
         {
             $this->key = $key;
             $this->filesize = $bytes;
-            $this->add_callback($key, array($this, 'is_smaller_than_filesize'), array());
+            $this->add_callback($key, array($this, 'is_smaller_than_filesize'), array($this->key));
         }
 
-        public function is_smaller_than_filesize()
+        public function is_smaller_than_filesize($file_path)
         {
-            return Upload::size($_FILES[$this->key], $this->filesize.'B');
+            if (isset($_FILES[$this->key]))
+                return Upload::size($_FILES[$this->key], $this->filesize.'B');
+            else
+                return filesize($file_path);
         }
 
         public function add_callback($key, array $function, array $arguments = array())

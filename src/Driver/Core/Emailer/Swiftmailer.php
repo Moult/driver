@@ -18,7 +18,8 @@ class Swiftmailer
     protected $smtp_user;
     protected $smtp_pass;
     protected $smtp_port;
-    protected $smtp_ssl = TRUE;
+    protected $smtp_ssl = FALSE;
+    protected $smtp_tls = FALSE;
 
     public function __construct()
     {
@@ -71,7 +72,11 @@ class Swiftmailer
         {
             $this->instance->addPart($this->html, 'text/html');
         }
-        if ($this->smtp_ssl)
+        if ($this->smtp_tls)
+        {
+            $transport = \Swift_SmtpTransport::newInstance($this->smtp_host, $this->smtp_port, 'tls');
+        }
+        elseif ($this->smtp_ssl)
         {
             $transport = \Swift_SmtpTransport::newInstance($this->smtp_host, $this->smtp_port, 'ssl');
         }

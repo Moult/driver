@@ -70,7 +70,7 @@ namespace
         public function is_file_valid_mimetype($file_path)
         {
             $has_files_global = FALSE;
-            if (isset($_FILES[$this->key]))
+            if (isset($_FILES[$this->key]) AND ! empty($_FILES[$this->key]['tmp_name']))
             {
                 $file_path = $_FILES[$this->key]['tmp_name'];
                 $has_files_global = TRUE;

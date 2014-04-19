@@ -17,7 +17,7 @@ class Facebook implements Tool\Facebook
     {
         $this->token = $token;
 
-        $this->facebook = new Facebook(array(
+        $this->facebook = new \Facebook(array(
             'appId'  => $this->app_id,
             'secret' => $this->app_secret,
         ));
@@ -25,7 +25,7 @@ class Facebook implements Tool\Facebook
         $this->instance = $this->facebook->api('debug_token', 'GET', array('input_token' => $token, 'access_token' => $this->access));
 
         if (isset($this->instance['data']['error']))
-            throw new Exception('Could not connect to Facebook');
+            throw new \Exception('Could not connect to Facebook');
     }
 
     public function check_scopes(array $scopes)
@@ -33,7 +33,9 @@ class Facebook implements Tool\Facebook
         foreach ($scopes as $scope)
         {
             if ( ! in_array($scope, $this->instance['data']['scopes']))
-                throw new Exception('Facebook permission scope "'.$scope.'" not allowed');
+            {
+                throw new \Exception('Facebook permission scope "'.$scope.'" not allowed');
+            }
         }
     }
 

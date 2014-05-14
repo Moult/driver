@@ -23,6 +23,11 @@ namespace
             $this->rule($key, 'not_empty');
         }
 
+        public function add_credit_card_rule($key)
+        {
+            $this->rule($key, 'credit_card');
+        }
+
         public function add_email_rule($key)
         {
             $this->rule($key, 'email');

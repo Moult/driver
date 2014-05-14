@@ -12,6 +12,8 @@ interface Validator
 
     public function add_required_rule($key);
 
+    public function add_credit_card_rule($key);
+
     public function add_email_rule($key);
 
     public function add_email_domain_rule($key);

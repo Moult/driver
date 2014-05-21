@@ -18,5 +18,7 @@ interface Photoshopper
 
     public function resize_to_height($px);
 
+    public function square_crop($px);
+
     public function gaussian_blur($sigma);
 }

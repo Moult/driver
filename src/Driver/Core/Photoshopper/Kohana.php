@@ -21,6 +21,26 @@ namespace
             $image->resize(NULL, $height);
             $image->save($this->destination, 100);
         }
+
+        public function square_crop($size)
+        {
+            $image = Image::factory($this->source);
+
+            list($width, $height) = $this->get_dimensions();
+
+            if ($width > $size OR $height > $size)
+                $image->resize($size, $size, Image::PRECISE);
+
+            $width = $image->width;
+            $height = $image->height;
+
+            if ($width > $height)
+                $image->crop($size, $size, ($width - $size) / 2, 0);
+            elseif ($height > $width)
+                $image->crop($size, $size, 0, ($height - $size) / 4);
+
+            $image->save($this->destination, 100);
+        }
     }
 }
 

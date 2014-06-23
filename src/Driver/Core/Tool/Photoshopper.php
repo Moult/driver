@@ -21,4 +21,10 @@ interface Photoshopper
     public function square_crop($px);
 
     public function gaussian_blur($sigma);
+
+    public function rotate($degrees);
+
+    public function get_geotagged_location_coordinates();
+
+    public function get_exif_orientation();
 }

@@ -41,6 +41,13 @@ namespace
 
             $image->save($this->destination, 100);
         }
+
+        public function rotate($degrees)
+        {
+            $image = Image::factory($this->source);
+            $image->rotate($degrees);
+            $image->save($this->destination, 100);
+        }
     }
 }
 
@@ -75,6 +82,57 @@ namespace Driver\Core\Photoshopper
         public function gaussian_blur($sigma)
         {
             shell_exec('convert '.escapeshellarg($this->source).' -filter Gaussian -resize 25% -define filter:sigma='.escapeshellarg($sigma).' -resize 400% '.escapeshellarg($this->destination));
+        }
+
+        public function get_geotagged_location_coordinates()
+        {
+            $exif = exif_read_data($this->source);
+
+            if ( ! isset($exif['GPSLatitude']))
+                return NULL;
+
+            list($lat_deg_numerator, $lat_deg_denominator) = explode('/', $exif['GPSLatitude'][0]);
+            $lat_deg = $lat_deg_numerator / $lat_deg_denominator;
+
+            list($lat_min_numerator, $lat_min_denominator) = explode('/', $exif['GPSLatitude'][1]);
+            $lat_min = $lat_min_numerator / $lat_min_denominator;
+
+            list($lat_sec_numerator, $lat_sec_denominator) = explode('/', $exif['GPSLatitude'][2]);
+            $lat_sec = $lat_sec_numerator / $lat_sec_denominator;
+
+            $latitude = $lat_deg+((($lat_min*60)+($lat_sec))/3600);
+
+            if ($exif['GPSLatitudeRef'] === 'S')
+            {
+                $latitude = - $latitude;
+            }
+
+            list($long_deg_numerator, $long_deg_denominator) = explode('/', $exif['GPSLongitude'][0]);
+            $long_deg = $long_deg_numerator / $long_deg_denominator;
+
+            list($long_min_numerator, $long_min_denominator) = explode('/', $exif['GPSLongitude'][1]);
+            $long_min = $long_min_numerator / $long_min_denominator;
+
+            list($long_sec_numerator, $long_sec_denominator) = explode('/', $exif['GPSLongitude'][2]);
+            $long_sec = $long_sec_numerator / $long_sec_denominator;
+
+            $longitude = $long_deg+((($long_min*60)+($long_sec))/3600);
+
+            if ($exif['GPSLongitudeRef'] === 'W')
+            {
+                $longitude = - $longitude;
+            }
+
+            return array($latitude, $longitude);
+        }
+
+        public function get_exif_orientation()
+        {
+            $exif = exif_read_data($this->source);
+            if (isset($exif['Orientation']))
+                return $exif['Orientation'];
+            else
+                return NULL;
         }
     }
 }

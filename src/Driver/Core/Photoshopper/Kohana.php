@@ -86,6 +86,12 @@ namespace Driver\Core\Photoshopper
 
         public function get_geotagged_location_coordinates()
         {
+            $mimetype = explode(';', finfo_file(finfo_open(FILEINFO_MIME), $this->source))[0];
+            if ($mimetype !== 'image/jpeg'
+                AND $mimetype !== 'image/tiff'
+                AND $mimetype !== 'image/tiff-fx')
+                return NULL;
+
             $exif = exif_read_data($this->source);
 
             if ( ! isset($exif['GPSLatitude']))
@@ -128,6 +134,12 @@ namespace Driver\Core\Photoshopper
 
         public function get_exif_orientation()
         {
+            $mimetype = explode(';', finfo_file(finfo_open(FILEINFO_MIME), $this->source))[0];
+            if ($mimetype !== 'image/jpeg'
+                AND $mimetype !== 'image/tiff'
+                AND $mimetype !== 'image/tiff-fx')
+                return NULL;
+
             $exif = exif_read_data($this->source);
             if (isset($exif['Orientation']))
                 return $exif['Orientation'];

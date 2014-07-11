@@ -27,4 +27,6 @@ interface Photoshopper
     public function get_geotagged_location_coordinates();
 
     public function get_exif_orientation();
+
+    public function auto_orientate();
 }

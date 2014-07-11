@@ -134,5 +134,10 @@ namespace Driver\Core\Photoshopper
             else
                 return NULL;
         }
+
+        public function auto_orientate()
+        {
+            shell_exec('mogrify -auto-orient '.escapeshellarg($this->source));
+        }
     }
 }

@@ -42,19 +42,11 @@ namespace
             $image->save($this->destination, 100);
         }
 
-        public function blur($pass = 50)
+        public function blur($radius = 0, $sigma = 16)
         {
-            $image = $this->image_create();
-
-            for($i = 0; $i <= $pass; $i++)
-            {
-                imagefilter($image, IMG_FILTER_GAUSSIAN_BLUR);
-            }
-
-            imagefilter($image, IMG_FILTER_SMOOTH, -4);
-            imagepng($image, $this->destination);
-
-            imagedestroy($image);
+            $image = new Imagick($this->source);
+            $image->blurImage($radius, $sigma);
+            return $image->writeImage($this->destination);
         }
 
         public function rotate($degrees)

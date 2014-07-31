@@ -20,6 +20,8 @@ interface Photoshopper
 
     public function square_crop($px);
 
+    public function blur();
+
     public function gaussian_blur($sigma);
 
     public function rotate($degrees);

@@ -42,6 +42,21 @@ namespace
             $image->save($this->destination, 100);
         }
 
+        public function blur($pass = 50)
+        {
+            $image = $this->image_create();
+
+            for($i = 0; $i <= $pass; $i++)
+            {
+                imagefilter($image, IMG_FILTER_GAUSSIAN_BLUR);
+            }
+
+            imagefilter($image, IMG_FILTER_SMOOTH, -4);
+            imagepng($image, $this->destination);
+
+            imagedestroy($image);
+        }
+
         public function rotate($degrees)
         {
             $image = Image::factory($this->source);
@@ -150,6 +165,31 @@ namespace Driver\Core\Photoshopper
         public function auto_orientate()
         {
             shell_exec('mogrify -auto-orient '.escapeshellarg($this->source));
+        }
+
+        private function get_exif_image_type()
+        {
+            return exif_imagetype($this->source);
+        }
+
+        private function image_create()
+        {
+            switch ($this->get_exif_image_type())
+            {
+                case IMAGETYPE_GIF:
+                    $image = imagecreatefromgif($this->source);
+                    break;
+                case IMAGETYPE_JPEG:
+                    $image = imagecreatefromjpeg($this->source);
+                    break;
+                case IMAGETYPE_PNG:
+                    $image = imagecreatefrompng($this->source);
+                    break;
+                default:
+                    return FALSE;
+            }
+
+            return $image;
         }
     }
 }

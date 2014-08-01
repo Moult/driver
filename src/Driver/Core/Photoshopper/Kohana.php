@@ -42,6 +42,13 @@ namespace
             $image->save($this->destination, 100);
         }
 
+        public function blur($radius = 0, $sigma = 16)
+        {
+            $image = new Imagick($this->source);
+            $image->blurImage($radius, $sigma);
+            return $image->writeImage($this->destination);
+        }
+
         public function rotate($degrees)
         {
             $image = Image::factory($this->source);
@@ -150,6 +157,31 @@ namespace Driver\Core\Photoshopper
         public function auto_orientate()
         {
             shell_exec('mogrify -auto-orient '.escapeshellarg($this->source));
+        }
+
+        private function get_exif_image_type()
+        {
+            return exif_imagetype($this->source);
+        }
+
+        private function image_create()
+        {
+            switch ($this->get_exif_image_type())
+            {
+                case IMAGETYPE_GIF:
+                    $image = imagecreatefromgif($this->source);
+                    break;
+                case IMAGETYPE_JPEG:
+                    $image = imagecreatefromjpeg($this->source);
+                    break;
+                case IMAGETYPE_PNG:
+                    $image = imagecreatefrompng($this->source);
+                    break;
+                default:
+                    return FALSE;
+            }
+
+            return $image;
         }
     }
 }

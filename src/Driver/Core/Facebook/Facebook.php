@@ -4,48 +4,101 @@ namespace Driver\Core\Facebook;
 
 use Driver\Core\Tool;
 
+use Facebook\FacebookSession;
+use Facebook\FacebookRedirectLoginHelper;
+use Facebook\FacebookRequest;
+use Facebook\FacebookResponse;
+use Facebook\FacebookSDKException;
+use Facebook\FacebookRequestException;
+use Facebook\FacebookAuthorizationException;
+use Facebook\GraphObject;
+
 class Facebook implements Tool\Facebook
 {
-    protected $facebook;
-    protected $token;
     protected $app_id;
     protected $app_secret;
-    protected $access;
-    protected $instance;
+    protected $redirect_uri;
+    protected $helper;
+    protected $scopes = array();
+    protected $session;
 
-    public function setup($token)
+    public function setup()
     {
-        $this->token = $token;
+        FacebookSession::setDefaultApplication($this->app_id, $this->app_secret);
+        $this->helper = new FacebookRedirectLoginHelper($this->redirect_uri);
 
-        $this->facebook = new \Facebook(array(
-            'appId'  => $this->app_id,
-            'secret' => $this->app_secret,
-        ));
+        if (isset($_SESSION) && isset($_SESSION['fb_token']))
+        {
+            $this->session = new FacebookSession($_SESSION['fb_token']);
 
-        $this->instance = $this->facebook->api('debug_token', 'GET', array('input_token' => $token, 'access_token' => $this->access));
+            if ( !$this->session->validate() )
+            {
+                $this->session = NULL;
+            }
+        }
 
-        if (isset($this->instance['data']['error']))
-            throw new \Exception('Could not connect to Facebook');
+        if ( !isset( $this->session ) || $this->session === NULL )
+        {
+            $this->session = $this->helper->getSessionFromRedirect();
+        }
+
+        if(isset($this->session))
+        {
+            $_SESSION['fb_token'] = $this->session->getToken();
+            $this->session = new FacebookSession( $this->session->getToken() );
+        }
+    }
+
+    public function get_login_url()
+    {
+        return $this->helper->getLoginUrl($this->scopes);
+    }
+
+    public function set_scopes($scopes)
+    {
+        $this->scopes = $scopes;
     }
 
     public function check_scopes(array $scopes)
     {
-        foreach ($scopes as $scope)
+        // @todo re-implement.
+
+        /*foreach ($scopes as $scope)
         {
             if ( ! in_array($scope, $this->instance['data']['scopes']))
             {
                 throw new \Exception('Facebook permission scope "'.$scope.'" not allowed');
             }
-        }
+        }*/
     }
 
     public function get_user()
     {
-        return $this->facebook->api('/'.$this->instance['data']['user_id']);
+        $request = new FacebookRequest( $this->session, 'GET', '/me' );
+        $response = $request->execute();
+        $graphObject = $response->getGraphObject();
+
+        $user = array(
+            'id' => $graphObject->getProperty('id'),
+            'email' => $graphObject->getProperty('email'),
+            'first_name' => $graphObject->getProperty('first_name'),
+            'last_name' => $graphObject->getProperty('last_name'),
+            'gender' => $graphObject->getProperty('gender'),
+        );
+
+        return $user;
     }
 
     public function get_user_picture()
     {
-        return $this->facebook->api('/'.$this->instance['data']['user_id'].'/picture');
+        $request = new FacebookRequest($this->session, 'GET', '/me/picture?type=large&redirect=false');
+        $response = $request->execute();
+        $graphObject = $response->getGraphObject();
+        return $graphObject->getProperty('url');
+    }
+
+    public function get_friends()
+    {
+        // @todo implement.
     }
 }

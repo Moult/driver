@@ -26,7 +26,27 @@ class Facebook implements Tool\Facebook
     {
         FacebookSession::setDefaultApplication($this->app_id, $this->app_secret);
         $this->helper = new FacebookRedirectLoginHelper($this->redirect_uri);
-        $this->session = $this->helper->getSessionFromRedirect();
+
+        if (isset($_SESSION) && isset($_SESSION['fb_token']))
+        {
+            $this->session = new FacebookSession($_SESSION['fb_token']);
+
+            if ( !$this->session->validate() )
+            {
+                $this->session = NULL;
+            }
+        }
+
+        if ( !isset( $this->session ) || $this->session === NULL )
+        {
+            $this->session = $this->helper->getSessionFromRedirect();
+        }
+
+        if(isset($this->session))
+        {
+            $_SESSION['fb_token'] = $this->session->getToken();
+            $this->session = new FacebookSession( $this->session->getToken() );
+        }
     }
 
     public function get_login_url()

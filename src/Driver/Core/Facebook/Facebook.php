@@ -4,54 +4,31 @@ namespace Driver\Core\Facebook;
 
 use Driver\Core\Tool;
 
-use Facebook\FacebookSession;
-use Facebook\FacebookRedirectLoginHelper;
-use Facebook\FacebookRequest;
-use Facebook\FacebookResponse;
-use Facebook\FacebookSDKException;
-use Facebook\FacebookRequestException;
-use Facebook\FacebookAuthorizationException;
-use Facebook\GraphObject;
-
 class Facebook implements Tool\Facebook
 {
     protected $app_id;
     protected $app_secret;
     protected $redirect_uri;
-    protected $helper;
     protected $scopes = array();
-    protected $session;
 
-    public function setup()
+    protected $code;
+    protected $access_token;
+
+    public function setup($code)
     {
-        FacebookSession::setDefaultApplication($this->app_id, $this->app_secret);
-        $this->helper = new FacebookRedirectLoginHelper($this->redirect_uri);
-
-        if (isset($_SESSION) && isset($_SESSION['fb_token']))
-        {
-            $this->session = new FacebookSession($_SESSION['fb_token']);
-
-            if ( !$this->session->validate() )
-            {
-                $this->session = NULL;
-            }
-        }
-
-        if ( !isset( $this->session ) || $this->session === NULL )
-        {
-            $this->session = $this->helper->getSessionFromRedirect();
-        }
-
-        if(isset($this->session))
-        {
-            $_SESSION['fb_token'] = $this->session->getToken();
-            $this->session = new FacebookSession( $this->session->getToken() );
-        }
+        $this->code = $code;
+        $this->access_token = $this->get_access_token();
     }
 
     public function get_login_url()
     {
-        return $this->helper->getLoginUrl($this->scopes);
+        $params = http_build_query(array(
+            'client_id' => $this->app_id,
+            'redirect_uri' => $this->redirect_uri,
+            'scope' => $this->scopes
+        ));
+
+        return 'https://www.facebook.com/dialog/oauth?' . $params;
     }
 
     public function set_scopes($scopes)
@@ -72,18 +49,50 @@ class Facebook implements Tool\Facebook
         }*/
     }
 
+    public function get_access_token()
+    {
+        $params = array(
+            'client_id' => $this->app_id,
+            'redirect_uri' => $this->redirect_uri,
+            'client_secret' => $this->app_secret,
+            'code' => $this->code
+        );
+
+        $curl = curl_init();
+        curl_setopt($curl, CURLOPT_URL, 'https://graph.facebook.com/oauth/access_token?' . http_build_query($params));
+        curl_setopt($curl, CURLOPT_RETURNTRANSFER, TRUE);
+        curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, FALSE);
+
+        $result = curl_exec($curl);
+
+        $this->access_token = str_replace("access_token=", '', $result);
+
+        curl_close($curl);
+
+        return $this->access_token;
+    }
+
     public function get_user()
     {
-        $request = new FacebookRequest( $this->session, 'GET', '/me' );
-        $response = $request->execute();
-        $graphObject = $response->getGraphObject();
+        $user = array();
+
+        $curl = curl_init();
+        curl_setopt($curl, CURLOPT_URL, 'https://graph.facebook.com/v2.1/me?access_token=' . $this->access_token);
+        curl_setopt($curl, CURLOPT_RETURNTRANSFER, TRUE);
+        curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, FALSE);
+
+        $result = curl_exec($curl);
+
+        curl_close($curl);
+
+        $response = json_decode($result);
 
         $user = array(
-            'id' => $graphObject->getProperty('id'),
-            'email' => $graphObject->getProperty('email'),
-            'first_name' => $graphObject->getProperty('first_name'),
-            'last_name' => $graphObject->getProperty('last_name'),
-            'gender' => $graphObject->getProperty('gender'),
+            'id' => $response->id,
+            'email' => $response->email,
+            'first_name' => $response->first_name,
+            'last_name' => $response->last_name,
+            'gender' => $response->gender
         );
 
         return $user;
@@ -91,14 +100,14 @@ class Facebook implements Tool\Facebook
 
     public function get_user_picture()
     {
-        $request = new FacebookRequest($this->session, 'GET', '/me/picture?type=large&redirect=false');
-        $response = $request->execute();
-        $graphObject = $response->getGraphObject();
-        return $graphObject->getProperty('url');
+        // @TODO implement
+        return NULL;
     }
 
     public function get_friends()
     {
         // @todo implement.
+        // current api will only return facebook "app" friends
+        return array();
     }
 }

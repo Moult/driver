@@ -4,7 +4,7 @@ namespace Driver\Core\Tool;
 
 interface Facebook
 {
-    public function setup();
+    public function setup($code);
 
     public function check_scopes(array $scopes);
 

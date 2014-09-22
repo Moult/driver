@@ -29,13 +29,13 @@ class Gmail implements Tool\Gmail
 
     public function get_contacts()
     {
-        $url = $this->feed_url.'?oauth_token='.$this->access_token;
+        $url = $this->feed_url.'?oauth_token='.$this->access_token . '&alt=json&max-results=1000';
 
         $curl = curl_init();
 
-        curl_setopt($curl,CURLOPT_URL, $url);
-        curl_setopt($curl,CURLOPT_RETURNTRANSFER, TRUE);
-        curl_setopt($curl,CURLOPT_CONNECTTIMEOUT, 5);
+        curl_setopt($curl, CURLOPT_URL, $url);
+        curl_setopt($curl, CURLOPT_RETURNTRANSFER, TRUE);
+        curl_setopt($curl, CURLOPT_CONNECTTIMEOUT, 5);
         curl_setopt($curl, CURLOPT_USERAGENT, 'Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.1; .NET CLR 1.1.4322)');
         curl_setopt($curl, CURLOPT_FOLLOWLOCATION, TRUE);
         curl_setopt($curl, CURLOPT_AUTOREFERER, TRUE);
@@ -43,22 +43,33 @@ class Gmail implements Tool\Gmail
         curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, FALSE);
 
         $response = curl_exec($curl);
+        $response = json_decode($response, TRUE);
 
-        curl_close($curl);
+        $feed_entries = $response['feed']['entry'];
 
-        $emails = array();
+        $contacts = array();
 
-        $xml = new \SimpleXMLElement($response);
-        $xml->registerXPathNamespace('gd', 'http://schemas.google.com/g/2005');
-
-        $result = $xml->xpath('//gd:email');
-
-        foreach ($result as $title)
+        if($feed_entries)
         {
-            $emails[] = (string) $title->attributes()->address;
+            foreach($feed_entries as $entry)
+            {
+                if(isset($entry['gd$email']))
+                {
+                    $email = $entry['gd$email'][0]['address'];
+                    $name = $entry['title']['$t'];
+
+                    if($name == '')
+                        list($name) = explode('@', $email);
+
+                    $contacts[] = array(
+                        'email' => $email,
+                        'name' => $name
+                    );
+                }
+            }
         }
 
-        return $emails;
+        return $contacts;
     }
 
     private function get_access_token($code)
@@ -75,9 +86,9 @@ class Gmail implements Tool\Gmail
 
         $curl = curl_init();
 
-        curl_setopt($curl,CURLOPT_URL,'https://accounts.google.com/o/oauth2/token');
-        curl_setopt($curl,CURLOPT_POST,5);
-        curl_setopt($curl,CURLOPT_POSTFIELDS,$post);
+        curl_setopt($curl, CURLOPT_URL,'https://accounts.google.com/o/oauth2/token');
+        curl_setopt($curl, CURLOPT_POST, count($fields));
+        curl_setopt($curl, CURLOPT_POSTFIELDS, $post);
         curl_setopt($curl, CURLOPT_RETURNTRANSFER, TRUE);
         curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, FALSE);
 

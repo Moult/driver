@@ -31,6 +31,17 @@ class Facebook implements Tool\Facebook
         return 'https://www.facebook.com/dialog/oauth?' . $params;
     }
 
+    public function get_send_dialog_url($link)
+    {
+        $params = http_build_query(array(
+            'app_id' => $this->app_id,
+            'link' => $link,
+            'redirect_uri' => $this->redirect_uri
+        ));
+
+        return "https://www.facebook.com/dialog/send?".$params;
+    }
+
     public function set_scopes($scopes)
     {
         $this->scopes = $scopes;

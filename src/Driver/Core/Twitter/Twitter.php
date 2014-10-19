@@ -46,6 +46,7 @@ class Twitter implements Tool\Twitter
         $this->oauth['oauth_signature'] = $this->build_oauth_signature($base_string, $tokens['oauth_token_secret']);
 
         $response = $this->send_request($verify_credentials_url, FALSE);
+        $response = json_decode($response, TRUE);
 
         return $response;
     }

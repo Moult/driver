@@ -72,15 +72,21 @@ class Facebook implements Tool\Facebook
         $curl = curl_init();
         curl_setopt($curl, CURLOPT_URL, 'https://graph.facebook.com/oauth/access_token?' . http_build_query($params));
         curl_setopt($curl, CURLOPT_RETURNTRANSFER, TRUE);
+        curl_setopt($curl, CURLOPT_IPRESOLVE, CURL_IPRESOLVE_V4);
         curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, FALSE);
-
         $result = curl_exec($curl);
-
-        $this->access_token = str_replace("access_token=", '', $result);
-
         curl_close($curl);
 
+        parse_str($result, $response);
+        $this->access_token = $response['access_token'];
+
         return $this->access_token;
+    }
+
+    public function get_long_lived_access_token()
+    {
+        // @todo implement
+        /*GET /oauth/access_token?grant_type=fb_exchange_token&client_id={app-id}&client_secret={app-secret}&fb_exchange_token={short-lived-token}*/
     }
 
     public function get_user()
@@ -88,12 +94,11 @@ class Facebook implements Tool\Facebook
         $user = array();
 
         $curl = curl_init();
-        curl_setopt($curl, CURLOPT_URL, 'https://graph.facebook.com/v2.1/me?access_token=' . $this->access_token);
+        curl_setopt($curl, CURLOPT_URL, 'https://graph.facebook.com/v2.2/me?access_token=' . $this->access_token);
         curl_setopt($curl, CURLOPT_RETURNTRANSFER, TRUE);
+        curl_setopt($curl, CURLOPT_IPRESOLVE, CURL_IPRESOLVE_V4);
         curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, FALSE);
-
         $result = curl_exec($curl);
-
         curl_close($curl);
 
         $response = json_decode($result);

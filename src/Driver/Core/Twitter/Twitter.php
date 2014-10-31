@@ -70,7 +70,7 @@ class Twitter implements Tool\Twitter
         return 'https://api.twitter.com/oauth/authenticate?oauth_token='. $response['oauth_token'];
     }
 
-    private function get_access_tokens()
+    public function get_access_tokens()
     {
         $access_token_url = 'https://api.twitter.com/oauth/access_token';
 

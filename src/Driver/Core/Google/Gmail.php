@@ -4,21 +4,16 @@ namespace Driver\Core\Google;
 
 use Driver\Core\Tool;
 
-class Gmail implements Tool\Gmail
+class Gmail extends Google implements Tool\Gmail
 {
-    protected $client_id;
-    protected $client_secret;
-    protected $redirect_uri;
-
-    private $access_token;
     private $feed_url = 'https://www.google.com/m8/feeds/contacts/default/full';
 
     public function setup($auth_code)
     {
-        $this->access_token = $this->get_access_token($auth_code);
+        $this->set_auth_code($auth_code);
     }
 
-    public function get_authorise_link()
+    public function get_authorise_page_link()
     {
         $link = "https://accounts.google.com/o/oauth2/auth?client_id=".$this->client_id;
         $link.= "&redirect_uri=".$this->redirect_uri;
@@ -29,7 +24,9 @@ class Gmail implements Tool\Gmail
 
     public function get_contacts()
     {
-        $url = $this->feed_url.'?oauth_token='.$this->access_token . '&alt=json&max-results=1000';
+        $this->request_access_token();
+
+        $url = $this->feed_url.'?oauth_token='.$this->get_access_token() . '&alt=json&max-results=1000';
 
         $curl = curl_init();
 
@@ -70,34 +67,5 @@ class Gmail implements Tool\Gmail
         }
 
         return $contacts;
-    }
-
-    private function get_access_token($code)
-    {
-        $fields=array(
-            'code'=> $code,
-            'client_id'=> urlencode($this->client_id),
-            'client_secret'=> urlencode($this->client_secret),
-            'redirect_uri'=> $this->redirect_uri,
-            'grant_type'=>  urlencode('authorization_code')
-        );
-
-        $post = http_build_query($fields, '', '&', PHP_QUERY_RFC3986);
-
-        $curl = curl_init();
-
-        curl_setopt($curl, CURLOPT_URL,'https://accounts.google.com/o/oauth2/token');
-        curl_setopt($curl, CURLOPT_POST, count($fields));
-        curl_setopt($curl, CURLOPT_POSTFIELDS, $post);
-        curl_setopt($curl, CURLOPT_RETURNTRANSFER, TRUE);
-        curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, FALSE);
-
-        $result = curl_exec($curl);
-
-        curl_close($curl);
-
-        $response = json_decode($result);
-
-        return $response->access_token;
     }
 }

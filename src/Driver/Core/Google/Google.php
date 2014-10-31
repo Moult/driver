@@ -28,13 +28,13 @@ class Google
         if($refresh_token)
         {
             $params['refresh_token'] = $refresh_token;
-            $params['grant_type'] => urlencode(self::GRANT_TYPE_REFRESH_TOKEN);
+            $params['grant_type'] = urlencode(self::GRANT_TYPE_REFRESH_TOKEN);
         }
         else
         {
             $params['code'] = $this->auth_code;
             $params['redirect_uri'] = $this->auth_code;
-            $params['grant_type'] => urlencode(self::GRANT_TYPE_AUTH_CODE);
+            $params['grant_type'] = urlencode(self::GRANT_TYPE_AUTH_CODE);
         }
 
         $post = http_build_query($params, '', '&', PHP_QUERY_RFC3986);

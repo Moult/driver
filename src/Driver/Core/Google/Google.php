@@ -33,7 +33,7 @@ class Google
         else
         {
             $params['code'] = $this->auth_code;
-            $params['redirect_uri'] = $this->auth_code;
+            $params['redirect_uri'] = $this->redirect_uri;
             $params['grant_type'] = urlencode(self::GRANT_TYPE_AUTH_CODE);
         }
 
@@ -48,14 +48,14 @@ class Google
         curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, FALSE);
 
         $response = curl_exec($curl);
-        $response = json_decode($response);
+        $response = json_decode($response, TRUE);
 
         curl_close($curl);
 
-        if(isset($response->refresh_token))
-            $this->refresh_token = $response->refresh_token;
+        if(isset($response['refresh_token']))
+            $this->refresh_token = $response['refresh_token'];
 
-        $this->access_token = $response->access_token;
+        $this->access_token = $response['access_token'];
     }
 
     public function get_access_token()

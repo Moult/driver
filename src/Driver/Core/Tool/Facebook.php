@@ -13,4 +13,6 @@ interface Facebook
     public function get_user_picture();
 
     public function get_friends();
+
+    public function get_long_lived_access_token();
 }

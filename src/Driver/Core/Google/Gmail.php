@@ -38,6 +38,7 @@ class Gmail extends Google implements Tool\Gmail
         curl_setopt($curl, CURLOPT_AUTOREFERER, TRUE);
         curl_setopt($curl, CURLOPT_TIMEOUT, 10);
         curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, FALSE);
+        curl_setopt($curl, CURLOPT_IPRESOLVE, CURL_IPRESOLVE_V4);
 
         $response = curl_exec($curl);
         $response = json_decode($response, TRUE);

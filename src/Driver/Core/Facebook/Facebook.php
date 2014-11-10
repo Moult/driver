@@ -17,7 +17,7 @@ class Facebook implements Tool\Facebook
     public function setup($code)
     {
         $this->code = $code;
-        $this->access_token = $this->get_access_token();
+        $this->access_token = $this->get_user_token();
     }
 
     public function get_login_url()
@@ -60,14 +60,34 @@ class Facebook implements Tool\Facebook
         }*/
     }
 
+    public function set_access_token($access_token)
+    {
+        $this->access_token = $access_token;
+    }
+
     public function get_access_token()
+    {
+        return $this->access_token;
+    }
+
+    public function get_user_token($fb_exchange_token = NULL)
     {
         $params = array(
             'client_id' => $this->app_id,
-            'redirect_uri' => $this->redirect_uri,
             'client_secret' => $this->app_secret,
-            'code' => $this->code
         );
+
+        if($fb_exchange_token)
+        {
+            $params['grant_type'] = 'fb_exchange_token';
+            $params['fb_exchange_token'] = $fb_exchange_token;
+        }
+        else
+        {
+            $params['redirect_uri'] = $this->redirect_uri;
+            $params['code'] = $this->code;
+        }
+
 
         $curl = curl_init();
         curl_setopt($curl, CURLOPT_URL, 'https://graph.facebook.com/oauth/access_token?' . http_build_query($params));
@@ -81,12 +101,6 @@ class Facebook implements Tool\Facebook
         $this->access_token = $response['access_token'];
 
         return $this->access_token;
-    }
-
-    public function get_long_lived_access_token()
-    {
-        // @todo implement
-        /*GET /oauth/access_token?grant_type=fb_exchange_token&client_id={app-id}&client_secret={app-secret}&fb_exchange_token={short-lived-token}*/
     }
 
     public function get_user()

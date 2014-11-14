@@ -14,6 +14,7 @@ class Twitter implements Tool\Twitter
 
     private $oauth_token;
     private $oauth_verifier;
+    private $tokens;
 
     public function __construct()
     {
@@ -30,20 +31,21 @@ class Twitter implements Tool\Twitter
     {
         $this->oauth_token = $oauth_token;
         $this->oauth_verifier = $oauth_verifier;
+
+        $this->tokens = $this->get_user_tokens();
     }
 
     public function get_user()
     {
         $verify_credentials_url = 'https://api.twitter.com/1.1/account/verify_credentials.json';
 
-        $tokens = $this->get_access_tokens();
-        $this->oauth['oauth_token'] = $tokens['oauth_token'];
+        $this->oauth['oauth_token'] = $this->tokens['oauth_token'];
 
         unset($this->oauth['oauth_verifier']);
         unset($this->oauth['oauth_signature']);
 
         $base_string = $this->build_base_string($verify_credentials_url, 'GET');
-        $this->oauth['oauth_signature'] = $this->build_oauth_signature($base_string, $tokens['oauth_token_secret']);
+        $this->oauth['oauth_signature'] = $this->build_oauth_signature($base_string, $this->tokens['oauth_token_secret']);
 
         $response = $this->send_request($verify_credentials_url, FALSE);
         $response = json_decode($response, TRUE);
@@ -70,7 +72,20 @@ class Twitter implements Tool\Twitter
         return 'https://api.twitter.com/oauth/authenticate?oauth_token='. $response['oauth_token'];
     }
 
+    public function set_access_tokens($oauth_token, $oauth_token_secret)
+    {
+        $this->tokens = array(
+            'oauth_token' => $oauth_token,
+            'oauth_token_secret' => $oauth_token_secret
+        );
+    }
+
     public function get_access_tokens()
+    {
+        return $this->tokens;
+    }
+
+    public function get_user_tokens()
     {
         $access_token_url = 'https://api.twitter.com/oauth/access_token';
 

@@ -37,17 +37,35 @@ class Twitter implements Tool\Twitter
 
     public function get_user()
     {
-        $verify_credentials_url = 'https://api.twitter.com/1.1/account/verify_credentials.json';
+        $resource_url = 'https://api.twitter.com/1.1/account/verify_credentials.json';
 
         $this->oauth['oauth_token'] = $this->tokens['oauth_token'];
 
         unset($this->oauth['oauth_verifier']);
         unset($this->oauth['oauth_signature']);
 
-        $base_string = $this->build_base_string($verify_credentials_url, 'GET');
+        $base_string = $this->build_base_string($resource_url, 'GET');
         $this->oauth['oauth_signature'] = $this->build_oauth_signature($base_string, $this->tokens['oauth_token_secret']);
 
-        $response = $this->send_request($verify_credentials_url, FALSE);
+        $response = $this->send_request($resource_url, FALSE);
+        $response = json_decode($response, TRUE);
+
+        return $response;
+    }
+
+    public function get_followers()
+    {
+        $resource_url = 'https://api.twitter.com/1.1/followers/ids.json';
+
+        $this->oauth['oauth_token'] = $this->tokens['oauth_token'];
+
+        unset($this->oauth['oauth_verifier']);
+        unset($this->oauth['oauth_signature']);
+
+        $base_string = $this->build_base_string($resource_url, 'GET');
+        $this->oauth['oauth_signature'] = $this->build_oauth_signature($base_string, $this->tokens['oauth_token_secret']);
+
+        $response = $this->send_request($resource_url, FALSE);
         $response = json_decode($response, TRUE);
 
         return $response;

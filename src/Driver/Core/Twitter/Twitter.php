@@ -47,7 +47,7 @@ class Twitter implements Tool\Twitter
         $base_string = $this->build_base_string($resource_url, 'GET');
         $this->oauth['oauth_signature'] = $this->build_oauth_signature($base_string, $this->tokens['oauth_token_secret']);
 
-        $response = $this->send_request($resource_url, FALSE);
+        $response = $this->send_request($resource_url);
         $response = json_decode($response, TRUE);
 
         return $response;
@@ -65,7 +65,30 @@ class Twitter implements Tool\Twitter
         $base_string = $this->build_base_string($resource_url, 'GET');
         $this->oauth['oauth_signature'] = $this->build_oauth_signature($base_string, $this->tokens['oauth_token_secret']);
 
-        $response = $this->send_request($resource_url, FALSE);
+        $response = $this->send_request($resource_url);
+        $response = json_decode($response, TRUE);
+
+        return $response;
+    }
+
+    public function direct_messages($screen_name, $text)
+    {
+        $resource_url = 'https://api.twitter.com/1.1/followers/ids.json';
+
+        $this->oauth['oauth_token'] = $this->tokens['oauth_token'];
+
+        unset($this->oauth['oauth_verifier']);
+        unset($this->oauth['oauth_signature']);
+
+        $base_string = $this->build_base_string($resource_url, 'GET');
+        $this->oauth['oauth_signature'] = $this->build_oauth_signature($base_string, $this->tokens['oauth_token_secret']);
+
+        $data = array(
+            'screen_name' => $screen_name,
+            'text' => $text
+        );
+
+        $response = $this->send_request($resource_url, $data);
         $response = json_decode($response, TRUE);
 
         return $response;
@@ -84,7 +107,7 @@ class Twitter implements Tool\Twitter
         $base_string = $this->build_base_string($request_token_url);
         $this->oauth['oauth_signature'] = $this->build_oauth_signature($base_string);
 
-        $response = $this->send_request($request_token_url);
+        $response = $this->send_request($request_token_url, TRUE);
         parse_str($response, $response);
 
         return 'https://api.twitter.com/oauth/authenticate?oauth_token='. $response['oauth_token'];
@@ -112,7 +135,7 @@ class Twitter implements Tool\Twitter
         $base_string = $this->build_base_string($access_token_url);
         $this->oauth['oauth_signature'] = $this->build_oauth_signature($base_string);
 
-        $response = $this->send_request($access_token_url);
+        $response = $this->send_request($access_token_url, TRUE);
         parse_str($response, $response);
 
         return $response;
@@ -149,7 +172,7 @@ class Twitter implements Tool\Twitter
         return $header;
     }
 
-    private function send_request($url, $is_post = TRUE)
+    private function send_request($url, $post_data = NULL)
     {
         $header = array($this->build_authorisation_header(), 'Expect:');
 
@@ -161,8 +184,13 @@ class Twitter implements Tool\Twitter
            CURLOPT_SSL_VERIFYPEER => FALSE
         );
 
-        if($is_post === TRUE)
+        if(! is_null($post_data))
+        {
             $options[CURLOPT_POST] = TRUE;
+
+            if(is_array($post_data) && ! empty($post_data))
+                $options[CURLOPT_POSTFIELDS] = http_build_query($post_data);
+        }
 
         $ch = curl_init();
         curl_setopt_array($ch, $options);

@@ -71,7 +71,7 @@ class Twitter implements Tool\Twitter
         return $response;
     }
 
-    public function direct_message($screen_name, $text)
+    public function direct_message($user_id, $text)
     {
         $resource_url = 'https://api.twitter.com/1.1/followers/ids.json';
 
@@ -84,7 +84,7 @@ class Twitter implements Tool\Twitter
         $this->oauth['oauth_signature'] = $this->build_oauth_signature($base_string, $this->tokens['oauth_token_secret']);
 
         $data = array(
-            'screen_name' => $screen_name,
+            'user_id' => $user_id,
             'text' => $text
         );
 

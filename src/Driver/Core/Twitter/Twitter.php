@@ -71,7 +71,7 @@ class Twitter implements Tool\Twitter
         return $response;
     }
 
-    public function direct_messages($screen_name, $text)
+    public function direct_message($screen_name, $text)
     {
         $resource_url = 'https://api.twitter.com/1.1/followers/ids.json';
 

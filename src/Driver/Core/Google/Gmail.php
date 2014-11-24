@@ -11,6 +11,7 @@ class Gmail extends Google implements Tool\Gmail
     public function setup($auth_code)
     {
         $this->set_auth_code($auth_code);
+        $this->request_access_token();
     }
 
     public function get_authorise_page_link()
@@ -24,8 +25,6 @@ class Gmail extends Google implements Tool\Gmail
 
     public function get_contacts()
     {
-        $this->request_access_token();
-
         $url = $this->feed_url.'?oauth_token='.$this->get_access_token() . '&alt=json&max-results=1000';
 
         $curl = curl_init();

@@ -64,6 +64,11 @@ class Google
         return $this->access_token;
     }
 
+    public function set_access_token($token)
+    {
+        $this->access_token = $token;
+    }
+
     public function get_refresh_token()
     {
         return $this->refresh_token;

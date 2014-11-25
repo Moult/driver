@@ -71,21 +71,21 @@ class Twitter implements Tool\Twitter
         return $response;
     }
 
-    public function direct_messages($screen_name, $text)
+    public function direct_message($user_id, $text)
     {
-        $resource_url = 'https://api.twitter.com/1.1/followers/ids.json';
+        $resource_url = 'https://api.twitter.com/1.1/direct_messages/new.json';
 
         $this->oauth['oauth_token'] = $this->tokens['oauth_token'];
 
         unset($this->oauth['oauth_verifier']);
         unset($this->oauth['oauth_signature']);
 
-        $base_string = $this->build_base_string($resource_url, 'GET');
+        $base_string = $this->build_base_string($resource_url);
         $this->oauth['oauth_signature'] = $this->build_oauth_signature($base_string, $this->tokens['oauth_token_secret']);
 
         $data = array(
-            'screen_name' => $screen_name,
-            'text' => $text
+            'text' => $text,
+            'user_id' => $user_id
         );
 
         $response = $this->send_request($resource_url, $data);
@@ -189,7 +189,7 @@ class Twitter implements Tool\Twitter
             $options[CURLOPT_POST] = TRUE;
 
             if(is_array($post_data) && ! empty($post_data))
-                $options[CURLOPT_POSTFIELDS] = http_build_query($post_data);
+                $options[CURLOPT_POSTFIELDS] = $post_data;
         }
 
         $ch = curl_init();

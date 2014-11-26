@@ -8,136 +8,107 @@ class Facebook implements Tool\Facebook
 {
     protected $app_id;
     protected $app_secret;
-    protected $redirect_uri;
-    protected $scopes = array();
 
-    protected $code;
-    protected $access_token;
+    private $code;
+    private $access_token;
+    private $oauth_url = 'https://www.facebook.com/dialog/oauth';
+    private $send_dialog_url = 'https://www.facebook.com/dialog/send';
+    private $access_token_url = 'https://graph.facebook.com/oauth/access_token';
+    private $debug_token_url = 'https://graph.facebook.com/debug_token';
+    private $me_url = 'https://graph.facebook.com/v2.2/me';
+    private $me_picture_url = 'https://graph.facebook.com/v2.2/me/picture';
 
-    public function setup($code)
+    public function get_login_url($redirect_uri, array $scopes)
     {
-        $this->code = $code;
-        $this->access_token = $this->get_user_token();
-    }
-
-    public function get_login_url()
-    {
-        $params = http_build_query(array(
+        return $this->oauth_url.'?'.http_build_query(array(
             'client_id' => $this->app_id,
-            'redirect_uri' => $this->redirect_uri,
-            'scope' => $this->scopes
+            'redirect_uri' => $redirect_uri,
+            'scope' => implode(',', $scopes)
         ));
-
-        return 'https://www.facebook.com/dialog/oauth?' . $params;
     }
 
-    public function get_send_dialog_url($link)
+    public function get_send_dialog_url($redirect_uri, $link)
     {
-        $params = http_build_query(array(
+        return $this->send_dialog_url.'?'.http_build_query(array(
             'app_id' => $this->app_id,
             'link' => $link,
-            'redirect_uri' => $this->redirect_uri
+            'redirect_uri' => $redirect_uri
         ));
-
-        return "https://www.facebook.com/dialog/send?".$params;
     }
 
-    public function set_scopes($scopes)
+    public function get_access_token($redirect_uri, $code)
     {
-        $this->scopes = $scopes;
+        parse_str(
+            $this->send_request($this->access_token_url.'?'.http_build_query(array(
+                'client_id' => $this->app_id,
+                'redirect_uri' => $redirect_uri,
+                'client_secret' => $this->app_secret,
+                'code' => $code
+            ))),
+            $response
+        );
+        $this->access_token = $response['access_token'];
+        return $this->access_token;
     }
 
-    public function check_scopes(array $scopes)
+    public function verify_access_token($access_token)
     {
-        // @todo re-implement.
-
-        /*foreach ($scopes as $scope)
-        {
-            if ( ! in_array($scope, $this->instance['data']['scopes']))
-            {
-                throw new \Exception('Facebook permission scope "'.$scope.'" not allowed');
-            }
-        }*/
+        $response = json_decode(
+            $this->send_request($this->debug_token_url.'?'.http_build_query(array(
+                'input_token' => $access_token,
+                'access_token' => $this->get_app_access_token(),
+            ))),
+            TRUE
+        );
+        return isset($response['data']['app_id'])
+            AND $response['data']['app_id'] == $this->app_id;
     }
 
-    public function set_access_token($access_token)
+    public function setup($access_token)
     {
         $this->access_token = $access_token;
     }
 
-    public function get_access_token()
-    {
-        return $this->access_token;
-    }
-
-    public function get_user_token($fb_exchange_token = NULL)
-    {
-        $params = array(
-            'client_id' => $this->app_id,
-            'client_secret' => $this->app_secret,
-        );
-
-        if($fb_exchange_token)
-        {
-            $params['grant_type'] = 'fb_exchange_token';
-            $params['fb_exchange_token'] = $fb_exchange_token;
-        }
-        else
-        {
-            $params['redirect_uri'] = $this->redirect_uri;
-            $params['code'] = $this->code;
-        }
-
-
-        $curl = curl_init();
-        curl_setopt($curl, CURLOPT_URL, 'https://graph.facebook.com/oauth/access_token?' . http_build_query($params));
-        curl_setopt($curl, CURLOPT_RETURNTRANSFER, TRUE);
-        curl_setopt($curl, CURLOPT_IPRESOLVE, CURL_IPRESOLVE_V4);
-        curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, FALSE);
-        $result = curl_exec($curl);
-        curl_close($curl);
-
-        parse_str($result, $response);
-        $this->access_token = $response['access_token'];
-
-        return $this->access_token;
-    }
-
     public function get_user()
     {
-        $user = array();
+        return json_decode($this->send_request($this->me_url.'?'.http_build_query(array(
+            'access_token' => $this->access_token
+        ))), TRUE);
+    }
 
+    public function get_user_profile_picture()
+    {
+        $response = json_decode($this->send_request($this->me_picture_url.'?'.http_build_query(array(
+            'access_token' => $this->access_token,
+            'width' => 300,
+            'height' => 300,
+            'redirect' => 'false'
+        ))), TRUE);
+
+        if ($response['data']['is_silhouette'])
+            return NULL;
+
+        return $response['data']['url'];
+    }
+
+    private function get_app_access_token()
+    {
+        return $this->send_request($this->access_token_url.'?'.http_build_query(array(
+            'client_id' => $this->app_id,
+            'client_secret' => $this->app_secret,
+            'grant_type' => 'client_credentials'
+        )));
+    }
+
+    private function send_request($uri)
+    {
         $curl = curl_init();
-        curl_setopt($curl, CURLOPT_URL, 'https://graph.facebook.com/v2.2/me?access_token=' . $this->access_token);
+        curl_setopt($curl, CURLOPT_URL, $uri);
         curl_setopt($curl, CURLOPT_RETURNTRANSFER, TRUE);
         curl_setopt($curl, CURLOPT_IPRESOLVE, CURL_IPRESOLVE_V4);
         curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, FALSE);
-        $result = curl_exec($curl);
+        $response_string = curl_exec($curl);
         curl_close($curl);
-
-        $response = json_decode($result);
-
-        $user = array(
-            'id' => $response->id,
-            'email' => $response->email,
-            'first_name' => $response->first_name,
-            'last_name' => $response->last_name,
-            'gender' => $response->gender
-        );
-
-        return $user;
-    }
-
-    public function get_user_picture()
-    {
-        // @TODO implement
-        return NULL;
-    }
-
-    public function get_friends()
-    {
-        // @todo implement.
-        // current api will only return facebook "app" friends
-        return array();
+        return $response_string;
     }
 }

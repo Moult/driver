@@ -36,8 +36,7 @@ class Twitter implements Tool\Twitter
         $this->request_params['oauth_callback'] = $callback_uri;
         $this->request_params['oauth_signature'] = $this->build_oauth_signature('POST', $this->request_token_url);
 
-        $response_string = $this->send_request('POST', $this->request_token_url);
-        parse_str($response_string, $response);
+        parse_str($this->send_request('POST', $this->request_token_url), $response);
 
         unset($this->request_params['oauth_callback']);
 
@@ -52,8 +51,7 @@ class Twitter implements Tool\Twitter
         $this->request_params['oauth_verifier'] = $oauth_verifier;
         $this->request_params['oauth_signature'] = $this->build_oauth_signature('POST', $this->access_token_url);
 
-        $response = $this->send_request('POST', $this->access_token_url);
-        parse_str($response, $response);
+        parse_str($this->send_request('POST', $this->access_token_url), $response);
 
         unset($this->request_params['oauth_token']);
         unset($this->request_params['oauth_verifier']);
@@ -71,34 +69,22 @@ class Twitter implements Tool\Twitter
     public function get_user()
     {
         $this->request_params['oauth_signature'] = $this->build_oauth_signature('GET', $this->verify_credentials_url);
-
-        $response = $this->send_request('GET', $this->verify_credentials_url);
-        $response = json_decode($response, TRUE);
-
-        return $response;
+        return json_decode($this->send_request('GET', $this->verify_credentials_url), TRUE);
     }
 
     public function get_followers()
     {
         $this->request_params['oauth_signature'] = $this->build_oauth_signature('GET', $this->followers_url);
-
-        $response = $this->send_request('GET', $this->followers_url);
-        $response = json_decode($response, TRUE);
-
-        return $response;
+        return json_decode($this->send_request('GET', $this->followers_url), TRUE);
     }
 
     public function direct_message($user_id, $text)
     {
         $this->request_params['oauth_signature'] = $this->build_oauth_signature('POST', $this->direct_messages_url);
-
-        $response = $this->send_request('POST', $this->direct_messages_url, array(
+        return json_decode($this->send_request('POST', $this->direct_messages_url, array(
             'text' => $text,
             'user_id' => $user_id
-        ));
-        $response = json_decode($response, TRUE);
-
-        return $response;
+        )), TRUE);
     }
 
     private function generate_nonce()

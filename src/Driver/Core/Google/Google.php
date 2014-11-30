@@ -14,6 +14,7 @@ class Google implements Tool\Google
     private $authorisation_url = 'https://accounts.google.com/o/oauth2/auth';
     private $token_url = 'https://accounts.google.com/o/oauth2/token';
     private $me_url = 'https://www.googleapis.com/plus/v1/people/me';
+    private $contacts_url = 'https://www.google.com/m8/feeds/contacts/default/full';
 
     public function get_authorisation_url($redirect_uri, array $scopes)
     {
@@ -58,6 +59,14 @@ class Google implements Tool\Google
     {
         return $this->send_request('GET', $this->me_url.'?'.http_build_query(array(
             'key' => $this->server_key
+        )));
+    }
+
+    public function get_contacts()
+    {
+        return $this->send_request('GET', $this->contacts_url.'?'.http_build_query(array(
+            'alt' => 'json',
+            'max-results' => 1000
         )));
     }
 

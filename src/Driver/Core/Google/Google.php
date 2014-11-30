@@ -2,85 +2,86 @@
 
 namespace Driver\Core\Google;
 
-class Google
+use Driver\Core\Tool;
+
+class Google implements Tool\Google
 {
-    const GRANT_TYPE_AUTH_CODE = 'authorization_code';
-    const GRANT_TYPE_REFRESH_TOKEN = 'refresh_token';
-
-    private $auth_code;
-    private $access_token;
-    private $refresh_token;
-
     protected $client_id;
     protected $client_secret;
-    protected $redirect_uri;
+    protected $server_key;
 
+    private $access_token;
+    private $authorisation_url = 'https://accounts.google.com/o/oauth2/auth';
+    private $token_url = 'https://accounts.google.com/o/oauth2/token';
+    private $me_url = 'https://www.googleapis.com/plus/v1/people/me';
 
-    public function request_access_token($refresh_token = NULL)
+    public function get_authorisation_url($redirect_uri, array $scopes)
     {
-        $oauth_token_url = 'https://accounts.google.com/o/oauth2/token';
+        return $this->authorisation_url.'?'.http_build_query(array(
+            'response_type' => 'code',
+            'client_id' => $this->client_id,
+            'redirect_uri' => $redirect_uri,
+            'scope' => implode(' ', $scopes),
+            'access_type' => 'offline'
+        ));
+    }
 
-        $params = array(
-            'client_id'=> urlencode($this->client_id),
-            'client_secret'=> urlencode($this->client_secret),
-        );
+    public function get_tokens($redirect_uri, $code)
+    {
+        return $this->send_request('POST', $this->token_url, array(
+            'code' => $code,
+            'client_id' => $this->client_id,
+            'client_secret' => $this->client_secret,
+            'redirect_uri' => $redirect_uri,
+            'grant_type' => 'authorization_code'
+        ));
+    }
 
-        if($refresh_token)
-        {
-            $params['refresh_token'] = $refresh_token;
-            $params['grant_type'] = urlencode(self::GRANT_TYPE_REFRESH_TOKEN);
-        }
-        else
-        {
-            $params['code'] = $this->auth_code;
-            $params['redirect_uri'] = $this->redirect_uri;
-            $params['grant_type'] = urlencode(self::GRANT_TYPE_AUTH_CODE);
-        }
+    public function refresh_access_token($refresh_token)
+    {
+        $response = $this->send_request('POST', $this->token_url, array(
+            'refresh_token' => $refresh_token,
+            'client_id' => $this->client_id,
+            'client_secret' => $this->client_secret,
+            'grant_type' => 'refresh_token'
+        ));
 
-        $post = http_build_query($params, '', '&', PHP_QUERY_RFC3986);
+        return $response['access_token'];
+    }
 
+    public function setup($access_token)
+    {
+        $this->access_token = $access_token;
+    }
+
+    public function get_user()
+    {
+        return $this->send_request('GET', $this->me_url.'?'.http_build_query(array(
+            'key' => $this->server_key
+        )));
+    }
+
+    private function send_request($method, $uri, array $data = array())
+    {
         $curl = curl_init();
 
-        curl_setopt($curl, CURLOPT_URL, $oauth_token_url);
-        curl_setopt($curl, CURLOPT_POST, count($params));
-        curl_setopt($curl, CURLOPT_POSTFIELDS, $post);
+        curl_setopt($curl, CURLOPT_URL, $uri);
+        if ($method === 'POST')
+        {
+            curl_setopt($curl, CURLOPT_POST, count($data));
+            curl_setopt($curl, CURLOPT_POSTFIELDS, http_build_query($data));
+        }
         curl_setopt($curl, CURLOPT_RETURNTRANSFER, TRUE);
         curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, FALSE);
         curl_setopt($curl, CURLOPT_IPRESOLVE, CURL_IPRESOLVE_V4);
 
-        $response = curl_exec($curl);
-        $response = json_decode($response, TRUE);
+        if ($this->access_token)
+        {
+            curl_setopt($curl, CURLOPT_HTTPHEADER, array('Authorization: Bearer '.$this->access_token));
+        }
 
+        $response = json_decode(curl_exec($curl), TRUE);
         curl_close($curl);
-
-        if(isset($response['refresh_token']))
-            $this->refresh_token = $response['refresh_token'];
-
-        $this->access_token = $response['access_token'];
-    }
-
-    public function get_access_token()
-    {
-        return $this->access_token;
-    }
-
-    public function set_access_token($token)
-    {
-        $this->access_token = $token;
-    }
-
-    public function get_refresh_token()
-    {
-        return $this->refresh_token;
-    }
-
-    public function set_auth_code($auth_code)
-    {
-        $this->auth_code = $auth_code;
-    }
-
-    public function revoke_token()
-    {
-        // @todo curl https://accounts.google.com/o/oauth2/revoke?token={token}
+        return $response;
     }
 }

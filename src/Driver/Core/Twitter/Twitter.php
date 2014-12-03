@@ -13,7 +13,8 @@ class Twitter implements Tool\Twitter
     private $oauth_token_secret = NULL;
 
     private $request_token_url = 'https://api.twitter.com/oauth/request_token';
-    private $authenticate_url = 'https://api.twitter.com/oauth/authorize';
+    private $authenticate_url = 'https://api.twitter.com/oauth/authenticate';
+    private $authorise_url = 'https://api.twitter.com/oauth/authorize';
     private $access_token_url = 'https://api.twitter.com/oauth/access_token';
     private $verify_credentials_url = 'https://api.twitter.com/1.1/account/verify_credentials.json';
     private $tweet_url = 'https://api.twitter.com/1.1/statuses/update.json';
@@ -32,18 +33,14 @@ class Twitter implements Tool\Twitter
         );
     }
 
-    public function get_authorisation_page_url($callback_uri)
+    public function get_authentication_url($callback_uri)
     {
-        $this->request_params['oauth_callback'] = $callback_uri;
-        $this->request_params['oauth_signature'] = $this->build_oauth_signature('POST', $this->request_token_url);
+        return $this->get_auth_url($this->authenticate_url, $callback_uri);
+    }
 
-        parse_str($this->send_request('POST', $this->request_token_url), $response);
-
-        unset($this->request_params['oauth_callback']);
-
-        return $this->authenticate_url.'?'.http_build_query(array(
-            'oauth_token' => $response['oauth_token']
-        ));
+    public function get_authorisation_url($callback_uri)
+    {
+        return $this->get_auth_url($this->authorise_url, $callback_uri);
     }
 
     public function get_access_tokens($oauth_token, $oauth_verifier)
@@ -111,6 +108,20 @@ class Twitter implements Tool\Twitter
     private function generate_nonce()
     {
         return preg_replace('/[^A-Za-z0-9]/', '', base64_encode(bin2hex(openssl_random_pseudo_bytes(16))));
+    }
+
+    private function get_auth_url($url, $callback_uri)
+    {
+        $this->request_params['oauth_callback'] = $callback_uri;
+        $this->request_params['oauth_signature'] = $this->build_oauth_signature('POST', $this->request_token_url);
+
+        parse_str($this->send_request('POST', $this->request_token_url), $response);
+
+        unset($this->request_params['oauth_callback']);
+
+        return $url.'?'.http_build_query(array(
+            'oauth_token' => $response['oauth_token']
+        ));
     }
 
     private function build_oauth_signature($method, $url)

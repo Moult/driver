@@ -4,7 +4,9 @@ namespace Driver\Core\Tool;
 
 interface Twitter
 {
-    public function get_authorisation_page_url($callback_uri);
+    public function get_authentication_url($callback_uri);
+
+    public function get_authorisation_url($callback_uri);
 
     public function get_access_tokens($oauth_token, $oauth_verifier);
 

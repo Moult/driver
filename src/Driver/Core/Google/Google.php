@@ -16,14 +16,15 @@ class Google implements Tool\Google
     private $me_url = 'https://www.googleapis.com/plus/v1/people/me';
     private $contacts_url = 'https://www.google.com/m8/feeds/contacts/default/full';
 
-    public function get_authorisation_url($redirect_uri, array $scopes)
+    public function get_authorisation_url($redirect_uri, array $scopes, $should_force_prompt = FALSE)
     {
         return $this->authorisation_url.'?'.http_build_query(array(
             'response_type' => 'code',
             'client_id' => $this->client_id,
             'redirect_uri' => $redirect_uri,
             'scope' => implode(' ', $scopes),
-            'access_type' => 'offline'
+            'access_type' => 'offline',
+            'approval_prompt' => $should_force_prompt ? 'force' : 'auto'
         ));
     }
 

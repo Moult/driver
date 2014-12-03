@@ -47,6 +47,10 @@ class Facebook implements Tool\Facebook
             ))),
             $response
         );
+
+        if ( ! isset($response['access_token']))
+            return NULL;
+
         $this->access_token = $response['access_token'];
         return $this->access_token;
     }

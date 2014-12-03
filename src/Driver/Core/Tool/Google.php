@@ -4,7 +4,7 @@ namespace Driver\Core\Tool;
 
 interface Google
 {
-    public function get_authorisation_url($redirect_uri, array $scopes);
+    public function get_authorisation_url($redirect_uri, array $scopes, $should_force_prompt);
 
     public function get_tokens($redirect_uri, $code);
 

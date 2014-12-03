@@ -13,4 +13,6 @@ interface Google
     public function setup($access_token);
 
     public function get_user();
+
+    public function get_contacts();
 }

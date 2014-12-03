@@ -48,6 +48,9 @@ class Google implements Tool\Google
             'grant_type' => 'refresh_token'
         ));
 
+        if ( ! isset($response['access_token']))
+            return NULL;
+
         return $response['access_token'];
     }
 

@@ -73,7 +73,10 @@ class Twitter implements Tool\Twitter
     {
         $this->request_params['status'] = $status;
         $this->request_params['oauth_signature'] = $this->build_oauth_signature('POST', $this->tweet_url);
-        return json_decode($this->send_request('POST', $this->tweet_url), TRUE);
+        unset($this->request_params['status']);
+        return json_decode($this->send_request('POST', $this->tweet_url, array(
+            'status' => $status
+        )), TRUE);
     }
 
     public function get_followers()

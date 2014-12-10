@@ -14,7 +14,7 @@ interface Twitter
 
     public function get_user();
 
-    public function tweet();
+    public function tweet($status);
 
     public function get_followers();
 

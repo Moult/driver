@@ -17,4 +17,8 @@ interface Facebook
     public function get_user();
 
     public function get_user_profile_picture();
+
+    public function get_permissions();
+
+    public function create_status_update($message, $link = NULL, $action_name = NULL, $action_link = NULL);
 }

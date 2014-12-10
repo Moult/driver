@@ -14,6 +14,8 @@ interface Twitter
 
     public function get_user();
 
+    public function tweet();
+
     public function get_followers();
 
     public function get_users_lookup($user_ids);

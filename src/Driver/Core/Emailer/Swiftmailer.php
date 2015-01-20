@@ -5,7 +5,7 @@
 
 namespace Driver\Core\Emailer;
 
-class Swiftmailer
+class Swiftmailer implements \Driver\Core\Tool\Emailer
 {
     protected $instance;
     protected $to;

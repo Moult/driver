@@ -23,7 +23,7 @@ class Swiftmailer implements \Driver\Core\Tool\Emailer
 
     public function __construct()
     {
-        $this->instance = \Swift_Message::newInstance();
+        $this->instance = new \Swift_Message;
     }
 
     public function set_to($to)
@@ -74,18 +74,18 @@ class Swiftmailer implements \Driver\Core\Tool\Emailer
         }
         if ($this->smtp_tls)
         {
-            $transport = \Swift_SmtpTransport::newInstance($this->smtp_host, $this->smtp_port, 'tls');
+            $transport = new \Swift_SmtpTransport($this->smtp_host, $this->smtp_port, 'tls');
         }
         elseif ($this->smtp_ssl)
         {
-            $transport = \Swift_SmtpTransport::newInstance($this->smtp_host, $this->smtp_port, 'ssl');
+            $transport = new \Swift_SmtpTransport($this->smtp_host, $this->smtp_port, 'ssl');
         }
         else
         {
-            $transport = \Swift_SmtpTransport::newInstance($this->smtp_host, $this->smtp_port);
+            $transport = new \Swift_SmtpTransport($this->smtp_host, $this->smtp_port);
         }
         $transport->setUsername($this->smtp_user)->setPassword($this->smtp_pass);
-        $mailer = \Swift_Mailer::newInstance($transport);
+        $mailer = new \Swift_Mailer($transport);
         $mailer->send($this->instance);
     }
 }
